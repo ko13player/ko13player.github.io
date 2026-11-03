@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Random Time Generator - ระบบสุ่มเวลาทำงาน & พักเที่ยง</title>
+
+  <!-- PWA & iOS Specific Meta Tags -->
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="สุ่มเวลา">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+          },
+          animation: {
+            'pop': 'pop 0.25s ease-out',
+          },
+          keyframes: {
+            pop: {
+              '0%': { transform: 'scale(0.92)', opacity: '0.6' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Support iOS Safe Area (Notch & Home Bar) */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-gray-100 to-indigo-50/40 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Container -->
+  <div class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-xl shadow-slate-200/60 border border-white p-5 sm:p-10 transition-all">
+
+      <!-- Header -->
+      <div class="text-center mb-6 sm:mb-8">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium mb-2.5">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          PWA Offline Ready
+        </div>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">
+          สุ่มเวลาเข้างาน & กินข้าว
+        </h1>
+        <p class="text-slate-500 mt-1.5 text-xs sm:text-sm">
+          แตะปุ่มเพื่อสุ่มเวลาและก๊อปปี้ไปใช้งานได้ทันที
+        </p>
+      </div>
+
+      <!-- Main Action: สุ่มทั้งหมด -->
+      <div class="mb-6 sm:mb-8">
+        <button id="btn-random-all" class="group relative w-full flex items-center justify-center gap-2.5 sm:gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-[0.98] text-white font-semibold py-3.5 sm:py-4 px-6 rounded-2xl shadow-lg shadow-indigo-500/25 transition duration-200 ease-in-out cursor-pointer">
+          <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span class="text-base sm:text-lg">🎲 สุ่มเวลาทั้งหมด (All in One)</span>
+        </button>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+
+        <!-- Card 1: เวลาเข้างาน -->
+        <div class="flex flex-col justify-between bg-gradient-to-b from-blue-50/50 to-white rounded-2xl p-5 sm:p-6 border border-blue-100/80 shadow-sm hover:shadow-md transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="p-2 rounded-xl bg-blue-100 text-blue-600">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </span>
+                <h2 class="font-bold text-slate-800 text-base sm:text-lg">เวลาเข้างาน</h2>
+              </div>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                08:00 - 09:30 น.
+              </span>
+            </div>
+
+            <!-- Display Time -->
+            <div class="py-5 sm:py-6 text-center">
+              <div id="work-time-display" class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-800 select-all transition-all duration-200">
+                --:-- <span class="text-lg sm:text-2xl font-normal text-slate-400">น.</span>
+              </div>
+              <p class="text-[11px] sm:text-xs text-slate-400 mt-1">ช่วงเวลาเช้า 08:00 - 09:30 น.</p>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <button id="btn-random-work" class="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium text-sm rounded-xl transition cursor-pointer shadow-sm">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9" />
+              </svg>
+              <span>สุ่มเข้างาน</span>
+            </button>
+            <button id="btn-copy-work" class="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-medium text-sm rounded-xl transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+              <span class="copy-label">คัดลอก</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: เวลากินข้าว -->
+        <div class="flex flex-col justify-between bg-gradient-to-b from-amber-50/50 to-white rounded-2xl p-5 sm:p-6 border border-amber-100/80 shadow-sm hover:shadow-md transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="p-2 rounded-xl bg-amber-100 text-amber-600">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </span>
+                <h2 class="font-bold text-slate-800 text-base sm:text-lg">เวลากินข้าว</h2>
+              </div>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
+                12:00 - 12:30 น.
+              </span>
+            </div>
+
+            <!-- Display Time -->
+            <div class="py-5 sm:py-6 text-center">
+              <div id="lunch-time-display" class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-800 select-all transition-all duration-200">
+                --:-- <span class="text-lg sm:text-2xl font-normal text-slate-400">น.</span>
+              </div>
+              <p class="text-[11px] sm:text-xs text-slate-400 mt-1">ช่วงเวลาเที่ยง 12:00 - 12:30 น.</p>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <button id="btn-random-lunch" class="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-medium text-sm rounded-xl transition cursor-pointer shadow-sm">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9" />
+              </svg>
+              <span>สุ่มกินข้าว</span>
+            </button>
+            <button id="btn-copy-lunch" class="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-medium text-sm rounded-xl transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+              <span class="copy-label">คัดลอก</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Copy Both Options -->
+      <div class="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-slate-500">
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          พร้อมสำหรับบันทึกเวลาทำงานประจำวัน
+        </span>
+        <button id="btn-copy-all" class="text-indigo-600 hover:text-indigo-800 font-medium hover:underline inline-flex items-center gap-1 cursor-pointer">
+          <span>คัดลอกสรุปทั้งสองเวลา</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-12 opacity-0 pointer-events-none transition-all duration-300 ease-out z-50 flex items-center gap-2 bg-slate-900 text-white text-sm py-2.5 px-4 rounded-xl shadow-xl">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toast-text">คัดลอกสำเร็จแล้ว</span>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    let currentWorkTime = '';
+    let currentLunchTime = '';
+
+    // ฟังก์ชันสุ่มเวลานาทีแล้วแปลงกลับเป็น HH:mm
+    function getRandomTime(minMinutes, maxMinutes) {
+      const randomMinutes = Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
+      const hours = String(Math.floor(randomMinutes / 60)).padStart(2, '0');
+      const mins = String(randomMinutes % 60).padStart(2, '0');
+      return `${hours}:${mins}`;
+    }
+
+    const workDisplay = document.getElementById('work-time-display');
+    const lunchDisplay = document.getElementById('lunch-time-display');
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+
+    let toastTimeout = null;
+    function showToast(message) {
+      toastText.textContent = message;
+      toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-12', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2000);
+    }
+
+    function triggerAnimation(element) {
+      element.classList.remove('animate-pop');
+      void element.offsetWidth;
+      element.classList.add('animate-pop');
+    }
+
+    function randomizeWorkTime() {
+      currentWorkTime = getRandomTime(480, 570);
+      workDisplay.innerHTML = `${currentWorkTime} <span class="text-lg sm:text-2xl font-normal text-slate-400">น.</span>`;
+      triggerAnimation(workDisplay);
+    }
+
+    function randomizeLunchTime() {
+      currentLunchTime = getRandomTime(720, 750);
+      lunchDisplay.innerHTML = `${currentLunchTime} <span class="text-lg sm:text-2xl font-normal text-slate-400">น.</span>`;
+      triggerAnimation(lunchDisplay);
+    }
+
+    function randomizeAll() {
+      randomizeWorkTime();
+      randomizeLunchTime();
+    }
+
+    async function copyToClipboard(text, buttonElement = null, toastMsg = 'คัดลอกสำเร็จแล้ว') {
+      if (!text) {
+        showToast('กรุณาสุ่มเวลาก่อนทำการคัดลอก');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          throw new Error('Clipboard API unavailable');
+        }
+      } catch (err) {
+        // Fallback สำหรับ iOS Safari หรือกรณีที่ไม่อนุญาต clipboard API
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (e) {
+          console.error('Fallback copy failed', e);
+        }
+        document.body.removeChild(textarea);
+      }
+
+      showToast(toastMsg);
+
+      if (buttonElement) {
+        const label = buttonElement.querySelector('.copy-label');
+        if (label) {
+          const originalText = label.textContent;
+          label.textContent = 'คัดลอกแล้ว!';
+          buttonElement.classList.add('text-emerald-600', 'bg-emerald-50');
+          setTimeout(() => {
+            label.textContent = originalText;
+            buttonElement.classList.remove('text-emerald-600', 'bg-emerald-50');
+          }, 1500);
+        }
+      }
+    }
+
+    document.getElementById('btn-random-work').addEventListener('click', randomizeWorkTime);
+    document.getElementById('btn-random-lunch').addEventListener('click', randomizeLunchTime);
+    document.getElementById('btn-random-all').addEventListener('click', randomizeAll);
+
+    document.getElementById('btn-copy-work').addEventListener('click', function() {
+      const textToCopy = currentWorkTime ? `${currentWorkTime} น.` : '';
+      copyToClipboard(textToCopy, this, `คัดลอกเวลาเข้างาน (${currentWorkTime} น.) แล้ว`);
+    });
+
+    document.getElementById('btn-copy-lunch').addEventListener('click', function() {
+      const textToCopy = currentLunchTime ? `${currentLunchTime} น.` : '';
+      copyToClipboard(textToCopy, this, `คัดลอกเวลากินข้าว (${currentLunchTime} น.) แล้ว`);
+    });
+
+    document.getElementById('btn-copy-all').addEventListener('click', function() {
+      if (!currentWorkTime && !currentLunchTime) {
+        showToast('กรุณาสุ่มเวลาก่อนคัดลอก');
+        return;
+      }
+      const summaryText = `เวลาเข้างาน: ${currentWorkTime ? currentWorkTime + ' น.' : '-'} | เวลากินข้าว: ${currentLunchTime ? currentLunchTime + ' น.' : '-'}`;
+      copyToClipboard(summaryText, null, 'คัดลอกสรุปเวลาทั้งหมดแล้ว');
+    });
+
+    // ลงทะเบียน Service Worker สำหรับ PWA และใช้งานแบบ Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('PWA Service Worker registered:', reg.scope))
+          .catch((err) => console.warn('PWA Service Worker registration failed:', err));
+      });
+    }
+
+    // สุ่มค่าเริ่มต้นทันที
+    window.addEventListener('DOMContentLoaded', () => {
+      randomizeAll();
+    });
+  </script>
+</body>
+</html>
